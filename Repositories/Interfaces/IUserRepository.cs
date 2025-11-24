@@ -1,4 +1,5 @@
 ﻿using Libraray.Api.Entities;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace Library_backend.Repositories.Interfaces
         Task<IEnumerable<User>> GetAllAsync();
 
         // Get specific user by ID
-        Task<User> GetByIdAsync(int id);
+        Task<User> GetByIdAsync(Guid id);
 
         // Get user by email (used for login)
         Task<User> GetByEmailAsync(string email);
@@ -22,7 +23,7 @@ namespace Library_backend.Repositories.Interfaces
         Task<User> UpdateAsync(User user);
 
         // Delete user
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(Guid id);
 
         // Check if email already exists (registration)
         Task<bool> EmailExistsAsync(string email);

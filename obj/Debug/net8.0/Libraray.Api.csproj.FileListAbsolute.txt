@@ -137,3 +137,4 @@ C:\Users\sharath.shony\Desktop\LMS\Library-backend\Libraray.Api\obj\Debug\net8.0
 C:\Users\sharath.shony\Desktop\LMS\Library-backend\Libraray.Api\obj\Debug\net8.0\Libraray.Api.genruntimeconfig.cache
 C:\Users\sharath.shony\Desktop\LMS\Library-backend\Libraray.Api\obj\Debug\net8.0\ref\Libraray.Api.dll
 C:\Users\sharath.shony\Desktop\LMS\Library-backend\Libraray.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\sharath.shony\Desktop\LMS\Library-backend\Libraray.Api\obj\Debug\net8.0\Libraray.Api.sourcelink.json
