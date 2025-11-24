@@ -19,6 +19,15 @@ builder.Services.AddDbContext<LibraryDbContext>(options =>
 // Then register repositories and services that depend on it
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 
 var app = builder.Build();
@@ -29,8 +38,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+// Comment out or remove HTTPS redirection for local development
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
