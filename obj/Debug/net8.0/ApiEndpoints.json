@@ -17,6 +17,27 @@
   },
   {
     "ContainingType": "Libraray.Api.Controllers.BooksController",
+    "Method": "BorrowBook",
+    "RelativePath": "api/Books/{bookId}/borrow",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "bookId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "Libraray.Api.DTO.Books.BorrowBookRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BooksController",
     "Method": "GetBookDetails",
     "RelativePath": "api/Books/{bookId}/details",
     "HttpMethod": "GET",

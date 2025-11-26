@@ -1,5 +1,4 @@
 ﻿using Libraray.Api.DTO.Books;
-using Libraray.Api.DTOs.Books;
 
 namespace Libraray.Api.Services.Interfaces
 {
@@ -7,5 +6,6 @@ namespace Libraray.Api.Services.Interfaces
     {
         Task<IEnumerable<BookCatalogDto>> GetCatalogAsync();
         Task<BookDetailsDto?> GetBookDetailsByIdAsync(Guid bookId);
+        Task<BorrowBookResponse?> BorrowBookAsync(Guid bookId, Guid userId, DateTime? dueDate);
     }
 }

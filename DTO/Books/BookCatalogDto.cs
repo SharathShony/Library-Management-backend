@@ -1,4 +1,4 @@
-﻿namespace Libraray.Api.DTOs.Books
+﻿namespace Libraray.Api.DTO.Books
 {
     public class BookCatalogDto
     {
