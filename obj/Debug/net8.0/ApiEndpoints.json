@@ -17,6 +17,22 @@
   },
   {
     "ContainingType": "Libraray.Api.Controllers.BooksController",
+    "Method": "GetBookDetails",
+    "RelativePath": "api/Books/{bookId}/details",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "bookId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BooksController",
     "Method": "GetCatalog",
     "RelativePath": "api/Books/catalog",
     "HttpMethod": "GET",

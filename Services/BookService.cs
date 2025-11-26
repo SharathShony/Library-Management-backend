@@ -1,4 +1,5 @@
-﻿using Libraray.Api.DTOs.Books;
+﻿using Libraray.Api.DTO.Books;
+using Libraray.Api.DTOs.Books;
 using Libraray.Api.Services.Interfaces;
 using Library_backend.Repositories.Interfaces;
 
@@ -16,6 +17,11 @@ namespace Libraray.Api.Services
         public async Task<IEnumerable<BookCatalogDto>> GetCatalogAsync()
         {
             return await _bookRepository.GetBookCatalogAsync();
+        }
+
+        public async Task<BookDetailsDto?> GetBookDetailsByIdAsync(Guid bookId)
+        {
+            return await _bookRepository.GetBookDetailsByIdAsync(bookId);
         }
     }
 }

@@ -2,6 +2,7 @@
 using Libraray.Api.Context;
 using Libraray.Api.DTOs.Books;
 using Library_backend.Repositories.Interfaces;
+using Libraray.Api.DTO.Books;
 
 namespace Library_backend.Repositories
 {
@@ -37,6 +38,38 @@ namespace Library_backend.Repositories
                     IsAvailable = b.AvailableCopies > 0
                 })
                 .ToListAsync();
+        }
+
+        public async Task<BookDetailsDto?> GetBookDetailsByIdAsync(Guid bookId)
+        {
+            return await _context.Books
+                .Include(b => b.BookAuthors)
+                    .ThenInclude(ba => ba.Author)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .Where(b => b.Id == bookId)
+                .Select(b => new BookDetailsDto
+                {
+                    BookId = b.Id,
+                    Title = b.Title,
+                    Subtitle = b.Subtitle,
+                    Isbn = b.Isbn,
+                    Summary = b.Summary,
+                    Publisher = b.Publisher,
+                    PublicationDate = b.PublicationDate,
+                    TotalCopies = b.TotalCopies,
+                    AvailableCopies = b.AvailableCopies,
+                    IsAvailable = b.AvailableCopies > 0,
+                    Authors = b.BookAuthors
+                                .Select(ba => ba.Author.Name)
+                                .ToList(),
+                    Categories = b.BookCategories
+                                .Select(bc => bc.Category.Name)
+                                .ToList(),
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
         }
     }
 }
