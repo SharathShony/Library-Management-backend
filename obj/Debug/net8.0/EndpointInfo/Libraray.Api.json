@@ -112,6 +112,28 @@
           }
         }
       }
+    },
+    "/api/Borrowings/currently-borrowed/count": {
+      "get": {
+        "tags": [
+          "Borrowings"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {

@@ -61,5 +61,21 @@
     "Order": 0,
     "Parameters": [],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetCurrentlyBorrowedCount",
+    "RelativePath": "api/Borrowings/currently-borrowed/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

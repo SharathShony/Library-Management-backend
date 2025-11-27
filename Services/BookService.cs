@@ -27,5 +27,10 @@ namespace Libraray.Api.Services
         {
             return await _bookRepository.BorrowBookAsync(bookId, userId, dueDate);
         }
+
+        public async Task<int> GetCurrentlyBorrowedCountAsync(Guid userId)
+        {
+            return await _bookRepository.GetCurrentlyBorrowedCountAsync(userId);
+        }
     }
 }

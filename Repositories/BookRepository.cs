@@ -141,5 +141,13 @@ namespace Library_backend.Repositories
                 throw;
             }
         }
+
+        public async Task<int> GetCurrentlyBorrowedCountAsync(Guid userId)
+        {
+            // Assuming "Borrowed" status means currently borrowed and not returned
+            return await _context.Borrowings
+                .Where(b => b.UserId == userId && b.Status == "Borrowed" && b.ReturnDate == null)
+                .CountAsync();
+        }
     }
 }
