@@ -64,8 +64,56 @@
   },
   {
     "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetCurrentlyBorrowedBooks",
+    "RelativePath": "api/Borrowings/currently-borrowed",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
     "Method": "GetCurrentlyBorrowedCount",
     "RelativePath": "api/Borrowings/currently-borrowed/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetOverdueBooksCount",
+    "RelativePath": "api/Borrowings/overdue/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetReturnedBooksCount",
+    "RelativePath": "api/Borrowings/returned/count",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
