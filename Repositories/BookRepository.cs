@@ -149,5 +149,44 @@ namespace Library_backend.Repositories
                 .Where(b => b.UserId == userId && b.Status == "Borrowed" && b.ReturnDate == null)
                 .CountAsync();
         }
+
+        public async Task<int> GetReturnedBooksCountAsync(Guid userId)
+        {
+            // A book is considered returned if ReturnDate is not null
+            return await _context.Borrowings
+                .Where(b => b.UserId == userId && b.ReturnDate != null)
+                .CountAsync();
+        }
+
+        public async Task<int> GetOverdueBooksCountAsync(Guid userId)
+        {
+            // A book is overdue if it is not returned and due date is before today
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            return await _context.Borrowings
+     .Where(b => b.UserId == userId && b.ReturnDate == null && b.DueDate < today)
+                .CountAsync();
+        }
+
+        public async Task<IEnumerable<BorrowedBookDto>> GetCurrentlyBorrowedBooksAsync(Guid userId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+  
+       return await _context.Borrowings
+ .Include(b => b.Book)
+        .ThenInclude(book => book.BookAuthors)
+    .ThenInclude(ba => ba.Author)
+        .Where(b => b.UserId == userId && b.ReturnDate == null && b.Status == "Borrowed")
+      .Select(b => new BorrowedBookDto
+              {
+         BorrowingId = b.Id,
+ BookId = b.BookId,
+              BookTitle = b.Book.Title,
+            Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
+          BorrowDate = b.BorrowDate,
+        DueDate = b.DueDate!.Value,
+          IsOverdue = b.DueDate.HasValue && b.DueDate.Value < today
+        })
+     .ToListAsync();
+        }
     }
 }
