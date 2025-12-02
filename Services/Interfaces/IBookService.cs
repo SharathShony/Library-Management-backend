@@ -11,5 +11,8 @@ namespace Libraray.Api.Services.Interfaces
         Task<int> GetReturnedBooksCountAsync(Guid userId);
         Task<int> GetOverdueBooksCountAsync(Guid userId);
         Task<IEnumerable<BorrowedBookDto>> GetCurrentlyBorrowedBooksAsync(Guid userId);
+        Task<ReturnBookResponse?> ReturnBookAsync(Guid borrowingId);
+        Task<ExtendDueDateResponse?> ExtendDueDateAsync(Guid borrowingId, int extensionDays = 7);
+        Task<IEnumerable<BorrowingHistoryDto>> GetBorrowingHistoryAsync(Guid userId);
     }
 }

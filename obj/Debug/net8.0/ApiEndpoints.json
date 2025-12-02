@@ -64,6 +64,43 @@
   },
   {
     "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "ExtendDueDate",
+    "RelativePath": "api/Borrowings/{borrowingId}/extend",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "borrowingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "extensionDays",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "ReturnBook",
+    "RelativePath": "api/Borrowings/{borrowingId}/return",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "borrowingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
     "Method": "GetCurrentlyBorrowedBooks",
     "RelativePath": "api/Borrowings/currently-borrowed",
     "HttpMethod": "GET",
@@ -82,6 +119,22 @@
     "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
     "Method": "GetCurrentlyBorrowedCount",
     "RelativePath": "api/Borrowings/currently-borrowed/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetBorrowingHistory",
+    "RelativePath": "api/Borrowings/history",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
