@@ -171,22 +171,152 @@ namespace Library_backend.Repositories
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
   
-       return await _context.Borrowings
- .Include(b => b.Book)
-        .ThenInclude(book => book.BookAuthors)
-    .ThenInclude(ba => ba.Author)
-        .Where(b => b.UserId == userId && b.ReturnDate == null && b.Status == "Borrowed")
-      .Select(b => new BorrowedBookDto
+                 return await _context.Borrowings
+                .Include(b => b.Book)
+                .ThenInclude(book => book.BookAuthors)
+                .ThenInclude(ba => ba.Author)
+                .Where(b => b.UserId == userId && b.ReturnDate == null && b.Status == "Borrowed")
+                .Select(b => new BorrowedBookDto
+                {
+                                                 BorrowingId = b.Id,
+                                                 BookId = b.BookId,
+                                                 BookTitle = b.Book.Title,
+                                                 Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
+                                                 Isbn = b.Book.Isbn,
+                                                 Publisher = b.Book.Publisher,
+                                                 Summary = b.Book.Summary,
+                                                 BorrowDate = b.BorrowDate,
+                                                 DueDate = b.DueDate!.Value,
+                                                 IsOverdue = b.DueDate.HasValue && b.DueDate.Value < today
+                }).ToListAsync();}
+
+        public async Task<ReturnBookResponse?> ReturnBookAsync(Guid borrowingId)
+        {
+            // Use a transaction to ensure data consistency
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Find the borrowing record
+                var borrowing = await _context.Borrowings
+                .Include(b => b.Book)
+                .Where(b => b.Id == borrowingId)
+                .FirstOrDefaultAsync();
+
+            if (borrowing == null)
+             {
+                  return null; // Borrowing not found
+             }
+
+          // Check if already returned
+            if (borrowing.ReturnDate != null)
+            {
+           return null; // Book already returned
+            }
+
+                   // Update return date
+            borrowing.ReturnDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            borrowing.Status = "Returned";
+
+       // Increment available copies
+             borrowing.Book.AvailableCopies += 1;
+             borrowing.Book.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+     // Commit transaction
+             await transaction.CommitAsync();
+
+            return new ReturnBookResponse
+            {
+                BorrowingId = borrowing.Id,
+                BookId = borrowing.BookId,
+                ReturnDate = borrowing.ReturnDate.Value,
+                AvailableCopies = borrowing.Book.AvailableCopies,
+                Message = "Book returned successfully"
+             };
+            }
+            catch
+             {
+                await transaction.RollbackAsync();
+                throw;
+                }
+             }
+
+        public async Task<ExtendDueDateResponse?> ExtendDueDateAsync(Guid borrowingId, int extensionDays = 7)
+        {
+            // Use a transaction to ensure data consistency
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+            // Find the borrowing record
+            var borrowing = await _context.Borrowings
+            .Where(b => b.Id == borrowingId)
+            .FirstOrDefaultAsync();
+
+            if (borrowing == null)
+             {
+                 return null; // Borrowing not found
+             }
+
+            // Check if book is already returned
+             if (borrowing.ReturnDate != null)
               {
-         BorrowingId = b.Id,
- BookId = b.BookId,
-              BookTitle = b.Book.Title,
-            Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
-          BorrowDate = b.BorrowDate,
-        DueDate = b.DueDate!.Value,
-          IsOverdue = b.DueDate.HasValue && b.DueDate.Value < today
-        })
-     .ToListAsync();
+                return null; // Cannot extend due date for returned book
+                 }
+
+            // Check if due date exists
+                 if (!borrowing.DueDate.HasValue)
+                 {
+                    return null; // No due date to extend
+                  }
+
+              // Extend the due date
+               var oldDueDate = borrowing.DueDate.Value;
+                borrowing.DueDate = oldDueDate.AddDays(extensionDays);
+
+            await _context.SaveChangesAsync();
+
+             // Commit transaction
+                await transaction.CommitAsync();
+
+            return new ExtendDueDateResponse
+             {
+            BorrowingId = borrowing.Id,
+            NewDueDate = borrowing.DueDate.Value,
+            ExtensionDays = extensionDays,
+             Message = "Due date extended successfully"
+                };
+            }
+            catch
+            {
+                 await transaction.RollbackAsync();
+                 throw;
+            }
+   }
+
+        public async Task<IEnumerable<BorrowingHistoryDto>> GetBorrowingHistoryAsync(Guid userId)
+        {
+   return await _context.Borrowings
+            .Include(b => b.Book)
+               .ThenInclude(book => book.BookAuthors)
+      .ThenInclude(ba => ba.Author)
+    .Where(b => b.UserId == userId && b.ReturnDate != null && b.Status == "Returned")
+     .OrderByDescending(b => b.ReturnDate)
+          .Select(b => new BorrowingHistoryDto
+  {
+        BorrowingId = b.Id,
+        BookId = b.BookId,
+       BookTitle = b.Book.Title,
+     Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
+   BorrowDate = b.BorrowDate,
+           DueDate = b.DueDate,
+         ReturnDate = b.ReturnDate,
+ Status = b.Status,
+   WasOverdue = b.ReturnDate.HasValue && b.DueDate.HasValue && b.ReturnDate.Value > b.DueDate.Value
+                })
+        .ToListAsync();
         }
-    }
+    }   
 }

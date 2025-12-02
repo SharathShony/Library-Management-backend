@@ -47,5 +47,20 @@ namespace Libraray.Api.Services
         {
             return await _bookRepository.GetCurrentlyBorrowedBooksAsync(userId);
         }
+
+        public async Task<ReturnBookResponse?> ReturnBookAsync(Guid borrowingId)
+        {
+            return await _bookRepository.ReturnBookAsync(borrowingId);
+        }
+
+        public async Task<ExtendDueDateResponse?> ExtendDueDateAsync(Guid borrowingId, int extensionDays = 7)
+        {
+            return await _bookRepository.ExtendDueDateAsync(borrowingId, extensionDays);
+        }
+
+        public async Task<IEnumerable<BorrowingHistoryDto>> GetBorrowingHistoryAsync(Guid userId)
+        {
+            return await _bookRepository.GetBorrowingHistoryAsync(userId);
+        }
     }
 }
