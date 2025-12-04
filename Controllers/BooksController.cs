@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Libraray.Api.DTO.Books;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ namespace Libraray.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // ← Require authentication for ALL endpoints by details
     public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -17,13 +19,15 @@ namespace Libraray.Api.Controllers
         }
 
         [HttpGet("catalog")]
+        [AllowAnonymous] // ← Override: Keep this public if you want browsing without login
         public async Task<IActionResult> GetCatalog()
         {
-            var books = await _bookService.GetCatalogAsync(); // ← Fixed: Use GetCatalogAsync
+            var books = await _bookService.GetCatalogAsync();
             return Ok(books);
         }
 
         [HttpGet("{bookId}/details")]
+        [AllowAnonymous] // ← Override: Keep this public if you want browsing without login
         public async Task<IActionResult> GetBookDetails(Guid bookId)
         {
             var book = await _bookService.GetBookDetailsByIdAsync(bookId);
@@ -35,8 +39,9 @@ namespace Libraray.Api.Controllers
 
             return Ok(book);
         }
-
+            
         [HttpPost("{bookId}/borrow")]
+        // [Authorize] is inherited from controller level
         public async Task<IActionResult> BorrowBook(Guid bookId, [FromBody] BorrowBookRequest request)
         {
             // Validate request

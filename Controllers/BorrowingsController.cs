@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +7,7 @@ namespace Libraray.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // Require authentication for all endpoints in this controller
     public class BorrowingsController : ControllerBase
     {
         private readonly IBookService _bookService;

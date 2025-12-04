@@ -16,6 +16,9 @@ namespace Library_backend.Repositories.Interfaces
         // Get user by email (used for login)
         Task<User> GetByEmailAsync(string email);
 
+        // Get user by username
+        Task<User> GetByUsernameAsync(string username);
+
         // Add a new user
         Task<User> AddAsync(User user);
 
@@ -27,5 +30,8 @@ namespace Library_backend.Repositories.Interfaces
 
         // Check if email already exists (registration)
         Task<bool> EmailExistsAsync(string email);
+
+        // Check if username already exists (registration)
+        Task<bool> UsernameExistsAsync(string username);
     }
 }
