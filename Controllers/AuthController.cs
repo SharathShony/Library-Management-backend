@@ -28,5 +28,32 @@ namespace Libraray.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("signup")]
+        public async Task<IActionResult> Signup([FromBody] SignupRequest request)
+        {
+            // Validate model state
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Call signup service
+            var result = await _authService.SignupAsync(request);
+
+            // Return appropriate status code based on message
+            if (result.Message == "Invalid email format")
+                return BadRequest(result);
+
+            if (result.Message.Contains("Password must"))
+                return BadRequest(result);
+
+            if (result.Message == "Email already exists" || result.Message == "Username already taken")
+                return Conflict(result);
+
+            if (result.Message == "Failed to create account")
+                return StatusCode(500, result);
+
+            // Success
+            return Ok(result);
+        }
     }
 }

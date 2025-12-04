@@ -2,6 +2,7 @@
 {
     public class BookCatalogDto
     {
+        
         public Guid BookId { get; set; }
         public string Title { get; set; } = null!;
         public string? Subtitle { get; set; }
