@@ -15,5 +15,8 @@ namespace Library_backend.Repositories.Interfaces
         Task<ReturnBookResponse?> ReturnBookAsync(Guid borrowingId);
         Task<ExtendDueDateResponse?> ExtendDueDateAsync(Guid borrowingId, int extensionDays = 7);
         Task<IEnumerable<BorrowingHistoryDto>> GetBorrowingHistoryAsync(Guid userId);
+        Task<CreateBookResponse?> CreateBookAsync(CreateBookRequest request);
+        Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies);
+        Task<bool> DeleteBookAsync(Guid bookId);
     }
 }
