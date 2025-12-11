@@ -7,7 +7,7 @@ namespace Libraray.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] 
+    [Authorize]
     public class BorrowingsController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -123,5 +123,23 @@ namespace Libraray.Api.Controllers
             var history = await _bookService.GetBorrowingHistoryAsync(userId);
             return Ok(history);
         }
+        [HttpGet("check-title")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> CheckBookTitle([FromQuery] string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return BadRequest(new { message = "Title parameter is required" });
+            }
+
+            var exists = await _bookService.CheckBookTitleExistsAsync(title);
+            
+            var message = exists 
+                ? $"Book with title '{title}' already exists" 
+                : $"Book with title '{title}' is available";
+
+            return Ok(new { exists, message });
+        }
+
     }
 }

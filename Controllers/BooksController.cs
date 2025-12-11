@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Libraray.Api.DTO.Books;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Libraray.Api.Context;
 
 namespace Libraray.Api.Controllers
 {
@@ -12,10 +13,12 @@ namespace Libraray.Api.Controllers
     public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly LibraryDbContext _context;
 
-        public BooksController(IBookService bookService)
+        public BooksController(IBookService bookService, LibraryDbContext context)
         {
             _bookService = bookService;
+            _context = context;
         }
 
         [HttpGet("catalog")]
@@ -38,6 +41,26 @@ namespace Libraray.Api.Controllers
             }
 
             return Ok(book);
+        }
+
+        [HttpGet("check-title")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> CheckBookTitle([FromQuery] string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return BadRequest(new { exists = false, message = "Title is required" });
+            }
+
+            var exists = await _context.Books
+                .AnyAsync(b => b.Title.ToLower() == title.ToLower());
+
+            if (exists)
+            {
+                return Ok(new { exists = true, message = "A book with this title already exists" });
+            }
+
+            return Ok(new { exists = false });
         }
             
         [HttpPost("{bookId}/borrow")]

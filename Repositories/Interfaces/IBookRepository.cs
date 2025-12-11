@@ -18,5 +18,6 @@ namespace Library_backend.Repositories.Interfaces
         Task<CreateBookResponse?> CreateBookAsync(CreateBookRequest request);
         Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies);
         Task<bool> DeleteBookAsync(Guid bookId);
+        Task<bool> BookTitleExistsAsync(string title);
     }
 }

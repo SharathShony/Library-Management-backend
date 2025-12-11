@@ -77,5 +77,11 @@ namespace Libraray.Api.Services
         {
             return await _bookRepository.DeleteBookAsync(bookId);
         }
+
+        public async Task<bool> CheckBookTitleExistsAsync(string title)
+        {
+            return await _bookRepository.BookTitleExistsAsync(title);
+
+        }
     }
 }

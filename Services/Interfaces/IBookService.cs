@@ -19,5 +19,6 @@ namespace Libraray.Api.Services.Interfaces
         Task<CreateBookResponse?> CreateBookAsync(CreateBookRequest request);
         Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies);
         Task<bool> DeleteBookAsync(Guid bookId);
+        Task<bool> CheckBookTitleExistsAsync(string title);
     }
 }

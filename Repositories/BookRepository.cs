@@ -158,6 +158,7 @@ namespace Library_backend.Repositories
                 .CountAsync();
         }
 
+
         public async Task<int> GetOverdueBooksCountAsync(Guid userId)
         {
             // A book is overdue if it is not returned and due date is before today
@@ -329,13 +330,13 @@ try
        var book = new Book
          {
         Id = Guid.NewGuid(),
-         Title = request.Title,
-       Subtitle = request.Subtitle,
-  Isbn = request.Isbn,
- Summary = request.Summary,
-   Publisher = request.Publisher,
-   PublicationDate = request.PublicationDate,
-     TotalCopies = request.TotalCopies,
+        Title = request.Title,
+        Subtitle = request.Subtitle,
+        Isbn = request.Isbn,
+        Summary = request.Summary,
+        Publisher = request.Publisher,
+         PublicationDate = request.PublicationDate,
+       TotalCopies = request.TotalCopies,
          AvailableCopies = request.TotalCopies,
           CreatedAt = DateTime.UtcNow,
     UpdatedAt = DateTime.UtcNow
@@ -511,5 +512,14 @@ await transaction.CommitAsync();
  throw;
             }
       }
+
+        public async Task<bool> BookTitleExistsAsync(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return false;
+            }
+            return await _context.Books.AnyAsync(b => b.Title.ToLower() == title.ToLower());
+        }
     }   
 }

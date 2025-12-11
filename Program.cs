@@ -1,4 +1,6 @@
 using Libraray.Api.Context;
+using Libraray.Api.Repositories;
+using Libraray.Api.Repositories.Interfaces;
 using Libraray.Api.Services;
 using Libraray.Api.Services.Interfaces;
 using Library_backend.Repositories;
@@ -50,6 +52,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddCors(options =>
 {
