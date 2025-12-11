@@ -158,6 +158,7 @@ namespace Library_backend.Repositories
                 .CountAsync();
         }
 
+
         public async Task<int> GetOverdueBooksCountAsync(Guid userId)
         {
             // A book is overdue if it is not returned and due date is before today
@@ -298,25 +299,227 @@ namespace Library_backend.Repositories
 
         public async Task<IEnumerable<BorrowingHistoryDto>> GetBorrowingHistoryAsync(Guid userId)
         {
-   return await _context.Borrowings
-            .Include(b => b.Book)
-               .ThenInclude(book => book.BookAuthors)
-      .ThenInclude(ba => ba.Author)
-    .Where(b => b.UserId == userId && b.ReturnDate != null && b.Status == "Returned")
-     .OrderByDescending(b => b.ReturnDate)
-          .Select(b => new BorrowingHistoryDto
-  {
-        BorrowingId = b.Id,
-        BookId = b.BookId,
+            return await _context.Borrowings
+.Include(b => b.Book)
+              .ThenInclude(book => book.BookAuthors)
+                .ThenInclude(ba => ba.Author)
+       .Where(b => b.UserId == userId && b.ReturnDate != null && b.Status == "Returned")
+          .OrderByDescending(b => b.ReturnDate)
+  .Select(b => new BorrowingHistoryDto
+          {
+       BorrowingId = b.Id,
+      BookId = b.BookId,
        BookTitle = b.Book.Title,
-     Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
+            Author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
    BorrowDate = b.BorrowDate,
-           DueDate = b.DueDate,
-         ReturnDate = b.ReturnDate,
- Status = b.Status,
-   WasOverdue = b.ReturnDate.HasValue && b.DueDate.HasValue && b.ReturnDate.Value > b.DueDate.Value
-                })
-        .ToListAsync();
+            DueDate = b.DueDate,
+       ReturnDate = b.ReturnDate,
+Status = b.Status,
+        WasOverdue = b.ReturnDate.HasValue && b.DueDate.HasValue && b.ReturnDate.Value > b.DueDate.Value
+          })
+         .ToListAsync();
+        }
+
+        public async Task<CreateBookResponse?> CreateBookAsync(CreateBookRequest request)
+{
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+try
+      {
+        // Create the book
+       var book = new Book
+         {
+        Id = Guid.NewGuid(),
+        Title = request.Title,
+        Subtitle = request.Subtitle,
+        Isbn = request.Isbn,
+        Summary = request.Summary,
+        Publisher = request.Publisher,
+         PublicationDate = request.PublicationDate,
+       TotalCopies = request.TotalCopies,
+         AvailableCopies = request.TotalCopies,
+          CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+  };
+
+      await _context.Books.AddAsync(book);
+             await _context.SaveChangesAsync();
+
+       // Handle authors
+if (request.Authors != null && request.Authors.Any())
+        {
+     foreach (var authorName in request.Authors)
+   {
+          // Check if author exists
+ var author = await _context.Authors
+        .FirstOrDefaultAsync(a => a.Name == authorName);
+
+      // Create author if doesn't exist
+        if (author == null)
+   {
+        author = new Author
+        {
+Id = Guid.NewGuid(),
+      Name = authorName
+    };
+              await _context.Authors.AddAsync(author);
+       await _context.SaveChangesAsync();
+       }
+
+          // Create book-author relationship
+      var bookAuthor = new BookAuthor
+      {
+           Id = Guid.NewGuid(),
+ BookId = book.Id,
+  AuthorId = author.Id
+             };
+        await _context.BookAuthors.AddAsync(bookAuthor);
+             }
+ }
+
+       // Handle categories
+                if (request.Categories != null && request.Categories.Any())
+    {
+         foreach (var categoryName in request.Categories)
+        {
+             // Check if category exists
+     var category = await _context.Categories
+        .FirstOrDefaultAsync(c => c.Name == categoryName);
+
+            // Create category if doesn't exist
+if (category == null)
+            {
+   category = new Category
+     {
+            Id = Guid.NewGuid(),
+      Name = categoryName
+          };
+       await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+       }
+
+                // Create book-category relationship
+      var bookCategory = new BookCategory
+                     {
+                 Id = Guid.NewGuid(),
+        BookId = book.Id,
+       CategoryId = category.Id
+};
+await _context.BookCategories.AddAsync(bookCategory);
+         }
+      }
+
+         await _context.SaveChangesAsync();
+       await transaction.CommitAsync();
+
+                return new CreateBookResponse
+       {
+ BookId = book.Id,
+     Message = "Book created successfully"
+        };
+     }
+    catch
+    {
+         await transaction.RollbackAsync();
+    throw;
+   }
+        }
+
+        public async Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies)
+        {
+          using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+          var book = await _context.Books
+                 .FirstOrDefaultAsync(b => b.Id == bookId);
+
+    if (book == null)
+    {
+       return null;
+      }
+
+        // Calculate borrowed copies
+         var borrowedCopies = book.TotalCopies - book.AvailableCopies;
+
+            // Validate that new total is at least as many as borrowed
+     if (totalCopies < borrowedCopies)
+                {
+    return null; // Cannot reduce total copies below currently borrowed count
+                }
+
+        // Update total and available copies
+    book.TotalCopies = totalCopies;
+        book.AvailableCopies = totalCopies - borrowedCopies;
+        book.UpdatedAt = DateTime.UtcNow;
+
+ await _context.SaveChangesAsync();
+  await transaction.CommitAsync();
+
+         return new UpdateBookCopiesResponse
+    {
+        TotalCopies = book.TotalCopies,
+              AvailableCopies = book.AvailableCopies,
+                    Message = "Book copies updated successfully"
+          };
+    }
+ catch
+       {
+      await transaction.RollbackAsync();
+             throw;
+   }
+        }
+
+        public async Task<bool> DeleteBookAsync(Guid bookId)
+        {
+  using var transaction = await _context.Database.BeginTransactionAsync();
+
+    try
+            {
+                var book = await _context.Books
+           .Include(b => b.BookAuthors)
+                .Include(b => b.BookCategories)
+         .Include(b => b.Borrowings)
+           .FirstOrDefaultAsync(b => b.Id == bookId);
+
+       if (book == null)
+  {
+       return false;
+      }
+
+  // Check if there are active borrowings
+       var hasActiveBorrowings = book.Borrowings.Any(b => b.ReturnDate == null);
+       if (hasActiveBorrowings)
+        {
+          return false; // Cannot delete book with active borrowings
+                }
+
+     // Remove relationships
+        _context.BookAuthors.RemoveRange(book.BookAuthors);
+           _context.BookCategories.RemoveRange(book.BookCategories);
+         
+     // Remove the book
+          _context.Books.Remove(book);
+
+     await _context.SaveChangesAsync();
+await transaction.CommitAsync();
+
+                return true;
+       }
+      catch
+            {
+    await transaction.RollbackAsync();
+ throw;
+            }
+      }
+
+        public async Task<bool> BookTitleExistsAsync(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return false;
+            }
+            return await _context.Books.AnyAsync(b => b.Title.ToLower() == title.ToLower());
         }
     }   
 }

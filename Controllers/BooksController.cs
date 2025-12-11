@@ -3,23 +3,26 @@ using Microsoft.AspNetCore.Authorization;
 using Libraray.Api.DTO.Books;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Libraray.Api.Context;
 
 namespace Libraray.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // ← Require authentication for ALL endpoints by details
+    [Authorize]
     public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly LibraryDbContext _context;
 
-        public BooksController(IBookService bookService)
+        public BooksController(IBookService bookService, LibraryDbContext context)
         {
             _bookService = bookService;
+            _context = context;
         }
 
         [HttpGet("catalog")]
-        [AllowAnonymous] // ← Override: Keep this public if you want browsing without login
+        [AllowAnonymous] 
         public async Task<IActionResult> GetCatalog()
         {
             var books = await _bookService.GetCatalogAsync();
@@ -27,7 +30,7 @@ namespace Libraray.Api.Controllers
         }
 
         [HttpGet("{bookId}/details")]
-        [AllowAnonymous] // ← Override: Keep this public if you want browsing without login
+        [AllowAnonymous] 
         public async Task<IActionResult> GetBookDetails(Guid bookId)
         {
             var book = await _bookService.GetBookDetailsByIdAsync(bookId);
@@ -39,12 +42,30 @@ namespace Libraray.Api.Controllers
 
             return Ok(book);
         }
+
+        [HttpGet("check-title")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> CheckBookTitle([FromQuery] string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return BadRequest(new { exists = false, message = "Title is required" });
+            }
+
+            var exists = await _context.Books
+                .AnyAsync(b => b.Title.ToLower() == title.ToLower());
+
+            if (exists)
+            {
+                return Ok(new { exists = true, message = "A book with this title already exists" });
+            }
+
+            return Ok(new { exists = false });
+        }
             
         [HttpPost("{bookId}/borrow")]
-        // [Authorize] is inherited from controller level
         public async Task<IActionResult> BorrowBook(Guid bookId, [FromBody] BorrowBookRequest request)
         {
-            // Validate request
             if (request.UserId == Guid.Empty)
             {
                 return BadRequest(new { message = "Invalid user ID" });
@@ -56,7 +77,6 @@ namespace Libraray.Api.Controllers
 
                 if (result == null)
                 {
-                    // Check specific error conditions
                     var bookDetails = await _bookService.GetBookDetailsByIdAsync(bookId);
                     
                     if (bookDetails == null)
@@ -82,6 +102,39 @@ namespace Libraray.Api.Controllers
             {
                 return StatusCode(500, new { message = "An error occurred while borrowing the book", error = ex.Message });
             }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> CreateBook([FromBody] CreateBookRequest request)
+        {
+            var result = await _bookService.CreateBookAsync(request);
+            if (result == null)
+                return BadRequest(new { message = "Failed to create book" });
+            
+            return CreatedAtAction(nameof(GetBookDetails), new { bookId = result.BookId }, result);
+        }
+
+        [HttpPut("{bookId}/copies")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateBookCopies(Guid bookId, [FromBody] UpdateBookCopiesRequest request)
+        {
+            var result = await _bookService.UpdateBookCopiesAsync(bookId, request.TotalCopies);
+            if (result == null)
+                return NotFound(new { message = "Book not found or invalid operation" });
+            
+            return Ok(result);
+        }
+
+        [HttpDelete("{bookId}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteBook(Guid bookId)
+        {
+            var success = await _bookService.DeleteBookAsync(bookId);
+            if (!success)
+                return NotFound(new { message = "Book not found or has active borrowings" });
+            
+            return Ok(new { message = "Book deleted successfully" });
         }
     }
 }

@@ -62,5 +62,26 @@ namespace Libraray.Api.Services
         {
             return await _bookRepository.GetBorrowingHistoryAsync(userId);
         }
+
+        public async Task<CreateBookResponse?> CreateBookAsync(CreateBookRequest request)
+        {
+            return await _bookRepository.CreateBookAsync(request);
+        }
+
+        public async Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies)
+        {
+            return await _bookRepository.UpdateBookCopiesAsync(bookId, totalCopies);
+        }
+
+        public async Task<bool> DeleteBookAsync(Guid bookId)
+        {
+            return await _bookRepository.DeleteBookAsync(bookId);
+        }
+
+        public async Task<bool> CheckBookTitleExistsAsync(string title)
+        {
+            return await _bookRepository.BookTitleExistsAsync(title);
+
+        }
     }
 }

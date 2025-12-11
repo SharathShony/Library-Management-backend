@@ -6,6 +6,7 @@ using Libraray.Api.Entities;
 using Libraray.Api.Services.Interfaces;
 using Library_backend.Repositories.Interfaces;
 using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace Libraray.Api.Services
 {
@@ -61,7 +62,10 @@ namespace Libraray.Api.Services
         {
             try
             {
-                if (!IsValidEmail(request.Email))
+                // Normalize email to lowercase first
+                var normalizedEmail = request.Email.Trim().ToLower();
+                
+                if (!IsValidEmail(normalizedEmail))
                 {
                     return new SignupResponse
                     {
@@ -78,7 +82,8 @@ namespace Libraray.Api.Services
                     };
                 }
 
-                if (await _userRepository.EmailExistsAsync(request.Email))
+                // Check with normalized email
+                if (await _userRepository.EmailExistsAsync(normalizedEmail))
                 {
                     return new SignupResponse
                     {
@@ -100,7 +105,7 @@ namespace Libraray.Api.Services
                 {
                     Id = Guid.NewGuid(),
                     Username = request.Username,
-                    Email = request.Email.ToLower(), // Store email in lowercase
+                    Email = normalizedEmail, // Use normalized email
                     PasswordHash = hashedPassword,
                     Role = string.IsNullOrWhiteSpace(request.Role) ? "Reader" : request.Role,
                     CreatedAt = DateTime.UtcNow,
@@ -115,6 +120,14 @@ namespace Libraray.Api.Services
                     UserId = createdUser.Id,
                     Username = createdUser.Username,
                     Email = createdUser.Email
+                };
+            }
+            catch (DbUpdateException ex) when (ex.InnerException?.Message?.Contains("UQ__USERS__AB6E6164") == true)
+            {
+                // Catch unique constraint violation from database
+                return new SignupResponse
+                {
+                    Message = "Email already exists"
                 };
             }
             catch (Exception)
