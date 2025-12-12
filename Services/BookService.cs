@@ -1,4 +1,5 @@
 ﻿using Libraray.Api.DTO.Books;
+using Libraray.Api.DTO.Admin;
 using Libraray.Api.Services.Interfaces;
 using Library_backend.Repositories.Interfaces;
 
@@ -81,7 +82,16 @@ namespace Libraray.Api.Services
         public async Task<bool> CheckBookTitleExistsAsync(string title)
         {
             return await _bookRepository.BookTitleExistsAsync(title);
+        }
 
+        public async Task<IEnumerable<OverdueUserDto>> GetOverdueUsersAsync()
+        {
+            return await _bookRepository.GetOverdueUsersAsync();
+        }
+
+        public async Task<UserOverdueBooksDto?> GetUserOverdueBooksAsync(Guid userId)
+        {
+            return await _bookRepository.GetUserOverdueBooksAsync(userId);
         }
     }
 }

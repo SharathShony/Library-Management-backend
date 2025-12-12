@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Libraray.Api.Context;
 using Libraray.Api.DTO.Books;
+using Libraray.Api.DTO.Admin;
 using Libraray.Api.Entities;
 using Library_backend.Repositories.Interfaces;
 
@@ -515,11 +516,71 @@ await transaction.CommitAsync();
 
         public async Task<bool> BookTitleExistsAsync(string title)
         {
-            if (string.IsNullOrWhiteSpace(title))
+      if (string.IsNullOrWhiteSpace(title))
             {
-                return false;
-            }
+   return false;
+    }
             return await _context.Books.AnyAsync(b => b.Title.ToLower() == title.ToLower());
+     }
+
+        public async Task<IEnumerable<OverdueUserDto>> GetOverdueUsersAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+       var overdueUsers = await _context.Borrowings
+         .Where(b => b.ReturnDate == null && b.DueDate.HasValue && b.DueDate.Value < today)
+       .Include(b => b.User)
+       .GroupBy(b => new { b.UserId, b.User.Username, b.User.Email })
+             .Select(g => new OverdueUserDto
+ {
+                UserId = g.Key.UserId,
+     UserName = g.Key.Username,
+    Email = g.Key.Email,
+            OverdueCount = g.Count()
+          })
+    .OrderByDescending(x => x.OverdueCount)
+.ToListAsync();
+
+        return overdueUsers;
+  }
+
+   public async Task<UserOverdueBooksDto?> GetUserOverdueBooksAsync(Guid userId)
+        {
+  var user = await _context.Users.FindAsync(userId);
+      if (user == null)
+      {
+         return null;
+      }
+
+ var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+      // First, get the borrowings without the calculated DaysOverdue
+    var borrowings = await _context.Borrowings
+     .Where(b => b.UserId == userId && b.ReturnDate == null && b.DueDate.HasValue && b.DueDate.Value < today)
+              .Include(b => b.Book)
+           .ToListAsync();
+
+       // Now calculate DaysOverdue and create DTOs in memory
+    var overdueBooks = borrowings
+  .Select(b => new OverdueBookDetailDto
+            {
+          BorrowingId = b.Id,
+       BookId = b.BookId,
+    BookTitle = b.Book.Title,
+              BorrowedDate = b.BorrowDate.ToDateTime(TimeOnly.MinValue),
+    DueDate = b.DueDate!.Value.ToDateTime(TimeOnly.MinValue),
+   DaysOverdue = today.DayNumber - b.DueDate!.Value.DayNumber
+   })
+             .OrderByDescending(b => b.DaysOverdue)
+   .ToList();
+
+     return new UserOverdueBooksDto
+         {
+   UserId = user.Id,
+      UserName = user.Username,
+     Email = user.Email,
+         OverdueBooks = overdueBooks
+   };
         }
     }   
 }

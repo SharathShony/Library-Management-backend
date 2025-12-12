@@ -1,4 +1,5 @@
 ﻿using Libraray.Api.DTO.Books;
+using Libraray.Api.DTO.Admin;
 using System.Threading.Tasks;
 
 namespace Library_backend.Repositories.Interfaces
@@ -19,5 +20,7 @@ namespace Library_backend.Repositories.Interfaces
         Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies);
         Task<bool> DeleteBookAsync(Guid bookId);
         Task<bool> BookTitleExistsAsync(string title);
+        Task<IEnumerable<OverdueUserDto>> GetOverdueUsersAsync();
+        Task<UserOverdueBooksDto?> GetUserOverdueBooksAsync(Guid userId);
     }
 }
