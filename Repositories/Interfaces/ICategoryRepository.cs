@@ -1,9 +1,10 @@
 ﻿using Libraray.Api.Entities;
+using Libraray.Api.DTO.Books;
 
 namespace Libraray.Api.Repositories.Interfaces
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<Category>> GetAllCategoriesAsync();
+        Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
     }
 }

@@ -27,19 +27,19 @@ namespace Libraray.Api.Controllers
    [HttpGet("overdue-books/{userId}")]
         public async Task<ActionResult<UserOverdueBooksDto>> GetUserOverdueBooks(Guid userId)
         {
-  if (userId == Guid.Empty)
-  {
-    return BadRequest(new { message = "Invalid userId" });
-            }
+        if (userId == Guid.Empty)
+        {
+             return BadRequest(new { message = "Invalid userId" });
+        }
 
-            var result = await _bookService.GetUserOverdueBooksAsync(userId);
+        var result = await _bookService.GetUserOverdueBooksAsync(userId);
 
-          if (result == null)
-       {
-     return NotFound(new { message = "User not found" });
-         }
+        if (result == null)
+        {
+        return NotFound(new { message = "User not found" });
+        }
 
             return Ok(result);
-  }
+         }
     }
 }

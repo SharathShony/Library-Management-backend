@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Libraray.Api.DTOs.Auth;
@@ -112,14 +113,23 @@ namespace Libraray.Api.Services
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                var createdUser = await _userRepository.AddAsync(newUser);
+                var isCreated = await _userRepository.AddAsync(newUser);
 
+                if (!isCreated)
+                {
+                    return new SignupResponse
+                    {
+                        Message = "Failed to create account"
+                    };
+                }
+
+                // ✅ Service creates the response with user data
                 return new SignupResponse
                 {
                     Message = "Account created successfully",
-                    UserId = createdUser.Id,
-                    Username = createdUser.Username,
-                    Email = createdUser.Email
+                    UserId = newUser.Id,
+                    Username = newUser.Username,
+                    Email = newUser.Email
                 };
             }
             catch (DbUpdateException ex) when (ex.InnerException?.Message?.Contains("UQ__USERS__AB6E6164") == true)
@@ -147,12 +157,52 @@ namespace Libraray.Api.Services
 
             try
             {
-                // RFC 5322 email validation pattern
-                var emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-                return Regex.IsMatch(email, emailPattern, RegexOptions.IgnoreCase);
+                // Use built-in .NET MailAddress for robust email validation
+                var mailAddress = new MailAddress(email);
+                var domain = mailAddress.Host;
+
+                // Basic domain checks
+                if (!domain.Contains('.'))
+                    return false;
+
+                if (domain.Contains(".."))
+                    return false;
+
+                if (domain.StartsWith('.') || domain.EndsWith('.') || 
+                    domain.StartsWith('-') || domain.EndsWith('-'))
+                    return false;
+
+                // Check for suspicious double TLD patterns
+                var domainParts = domain.Split('.');
+                if (domainParts.Length >= 2)
+                {
+                    var genericTlds = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        "com", "org", "net", "edu", "gov", "mil", "int",
+                        "io", "ai", "dev", "app", "biz", "info"
+                    };
+
+                    var lastTld = domainParts[^1];
+
+                    for (int i = 0; i < domainParts.Length - 1; i++)
+                    {
+                        var segment = domainParts[i];
+
+                        // Block if same TLD appears twice (e.g., com.com, org.org)
+                        if (segment.Equals(lastTld, StringComparison.OrdinalIgnoreCase))
+                            return false;
+
+                        // Block if a generic TLD appears before another generic TLD
+                        if (genericTlds.Contains(segment) && genericTlds.Contains(lastTld))
+                            return false;
+                    }
+                }
+
+                return true;
             }
-            catch
+            catch (FormatException)
             {
+                // MailAddress throws FormatException for invalid emails
                 return false;
             }
         }
