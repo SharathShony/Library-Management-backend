@@ -1,4 +1,5 @@
 ﻿using Libraray.Api.Context;
+using Libraray.Api.DTO.Books;
 using Libraray.Api.Entities;
 using Libraray.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,17 @@ namespace Libraray.Api.Repositories
         {
             _context = context;
         }
-        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+
+        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
-            return await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+            return await _context.Categories
+                .OrderBy(c => c.Name)
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                })
+                .ToListAsync();
         }
     }
 }

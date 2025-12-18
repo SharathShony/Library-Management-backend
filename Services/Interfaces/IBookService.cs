@@ -1,4 +1,5 @@
 ﻿using Libraray.Api.DTO.Books;
+using Libraray.Api.DTO.Admin;
 
 namespace Libraray.Api.Services.Interfaces
 {
@@ -20,5 +21,9 @@ namespace Libraray.Api.Services.Interfaces
         Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, int totalCopies);
         Task<bool> DeleteBookAsync(Guid bookId);
         Task<bool> CheckBookTitleExistsAsync(string title);
+        
+        // Admin - Overdue Books
+        Task<IEnumerable<OverdueUserDto>> GetOverdueUsersAsync();
+        Task<UserOverdueBooksDto?> GetUserOverdueBooksAsync(Guid userId);
     }
 }

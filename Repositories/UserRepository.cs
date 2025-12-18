@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Libraray.Api.Context;
 using Libraray.Api.Entities;
 using Library_backend.Repositories.Interfaces;
+using Libraray.Api.DTOs.Auth;
 
 namespace Library_backend.Repositories
 {
@@ -15,17 +16,6 @@ namespace Library_backend.Repositories
         public UserRepository(LibraryDbContext context)
         {
             _context = context;
-        }
-
-        public async Task<IEnumerable<User>> GetAllAsync()
-        {
-            return await _context.Users.ToListAsync();
-        }
-
-        public async Task<User> GetByIdAsync(Guid id)
-        {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User> GetByEmailAsync(string email)
@@ -40,11 +30,6 @@ namespace Library_backend.Repositories
                 .AnyAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
-        public async Task<User> GetByUsernameAsync(string username)
-        {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == username);
-        }
 
         public async Task<bool> UsernameExistsAsync(string username)
         {
@@ -52,30 +37,18 @@ namespace Library_backend.Repositories
                 .AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
 
-        public async Task<User> AddAsync(User user)
+        public async Task<bool> AddAsync(User user)
         {
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<User> UpdateAsync(User user)
-        {
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var user = await GetByIdAsync(id);
-
-            if (user == null)
-                return false;
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+                return true;  // ✅ Success
+            }
+            catch
+            {
+                return false;  // ✅ Failed
+            }
         }
     }
 }

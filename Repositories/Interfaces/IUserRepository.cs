@@ -1,4 +1,5 @@
-﻿using Libraray.Api.Entities;
+﻿using Libraray.Api.DTOs.Auth;
+using Libraray.Api.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,26 +8,12 @@ namespace Library_backend.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        // Get all users
-        Task<IEnumerable<User>> GetAllAsync();
-
-        // Get specific user by ID
-        Task<User> GetByIdAsync(Guid id);
-
         // Get user by email (used for login)
         Task<User> GetByEmailAsync(string email);
 
-        // Get user by username
-        Task<User> GetByUsernameAsync(string username);
+        // Add a new user - returns true if successful, false if failed
+        Task<bool> AddAsync(User user);
 
-        // Add a new user
-        Task<User> AddAsync(User user);
-
-        // Update user details
-        Task<User> UpdateAsync(User user);
-
-        // Delete user
-        Task<bool> DeleteAsync(Guid id);
 
         // Check if email already exists (registration)
         Task<bool> EmailExistsAsync(string email);

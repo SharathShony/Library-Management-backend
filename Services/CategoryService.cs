@@ -13,8 +13,7 @@ namespace Libraray.Api.Services
         }
         public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
-            var categories = await _categoryRepository.GetAllCategoriesAsync();
-            return categories.Select(c => new CategoryDto { Id = c.Id, Name = c.Name });
+         return await _categoryRepository.GetAllCategoriesAsync();
         }
     }
 }
