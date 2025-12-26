@@ -2,7 +2,7 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Libraray.Api.Entities;
+using Libraray.Api.DTO.Users;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -15,10 +15,10 @@ namespace Libraray.Api.Services
 
     public JwtTokenService(IConfiguration configuration)
         {
-            _configuration = configuration;
-         }
+    _configuration = configuration;
+       }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(UserClaimsDto userClaims)
         {
         var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
@@ -30,22 +30,22 @@ namespace Libraray.Api.Services
 
         var claims = new[]
         {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, user.Role),
+        new Claim(JwtRegisteredClaimNames.Sub, userClaims.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, userClaims.Email),
+        new Claim(ClaimTypes.Name, userClaims.Username),
+        new Claim(ClaimTypes.Role, userClaims.Role),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-            var token = new JwtSecurityToken(
-                        issuer: jwtIssuer,
-                        audience: jwtAudience,
-                        claims: claims,
-                        expires: DateTime.UtcNow.AddMinutes(jwtExpiryMinutes),
-                        signingCredentials: credentials
-            );
+        var token = new JwtSecurityToken(
+        issuer: jwtIssuer,
+        audience: jwtAudience,
+        claims: claims,
+        expires: DateTime.UtcNow.AddMinutes(jwtExpiryMinutes),
+        signingCredentials: credentials
+        );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+        return new JwtSecurityTokenHandler().WriteToken(token);
+      }
     }
 }

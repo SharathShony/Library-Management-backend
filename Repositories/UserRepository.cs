@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Libraray.Api.Context;
 using Libraray.Api.Entities;
+using Libraray.Api.DTO.Users;
 using Library_backend.Repositories.Interfaces;
-using Libraray.Api.DTOs.Auth;
 
 namespace Library_backend.Repositories
 {
@@ -15,40 +15,48 @@ namespace Library_backend.Repositories
 
         public UserRepository(LibraryDbContext context)
         {
-            _context = context;
-        }
+      _context = context;
+  }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public async Task<UserAuthDto?> GetByEmailForAuthAsync(string email)
         {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+return await _context.Users
+ .Where(u => u.Email.ToLower() == email.ToLower())
+  .Select(u => new UserAuthDto
+            {
+        Id = u.Id,
+  Username = u.Username,
+     Email = u.Email,
+              PasswordHash = u.PasswordHash,  // Only returned for authentication
+     Role = u.Role
+        })
+           .FirstOrDefaultAsync();
         }
 
         public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _context.Users
-                .AnyAsync(u => u.Email.ToLower() == email.ToLower());
+       return await _context.Users
+         .AnyAsync(u => u.Email.ToLower() == email.ToLower());
         }
-
 
         public async Task<bool> UsernameExistsAsync(string username)
         {
-            return await _context.Users
-                .AnyAsync(u => u.Username.ToLower() == username.ToLower());
+      return await _context.Users
+       .AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
 
-        public async Task<bool> AddAsync(User user)
+    public async Task<bool> AddAsync(User user)
         {
-            try
-            {
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
-                return true;  // ✅ Success
-            }
-            catch
-            {
-                return false;  // ✅ Failed
-            }
-        }
+    try
+  {
+     await _context.Users.AddAsync(user);
+      await _context.SaveChangesAsync();
+      return true;  // ✅ Success
+          }
+      catch
+   {
+  return false;  // ✅ Failed
+     }
+    }
     }
 }

@@ -1,9 +1,9 @@
-using Libraray.Api.Entities;
+using Libraray.Api.DTO.Users;
 
 namespace Libraray.Api.Services.Interfaces
 {
     public interface IJwtTokenService
     {
-        string GenerateToken(User user);
+        string GenerateToken(UserClaimsDto claims);
     }
 }

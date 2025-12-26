@@ -3,6 +3,7 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Libraray.Api.DTOs.Auth;
+using Libraray.Api.DTO.Users;
 using Libraray.Api.Entities;
 using Libraray.Api.Services.Interfaces;
 using Library_backend.Repositories.Interfaces;
@@ -24,10 +25,10 @@ namespace Libraray.Api.Services
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            // 1. Find user by email
-            var user = await _userRepository.GetByEmailAsync(request.Email);
+            // 1. Find user by email - gets UserAuthDto with PasswordHash for verification
+            var userAuth = await _userRepository.GetByEmailForAuthAsync(request.Email);
 
-            if (user == null)
+            if (userAuth == null)
             {
                 return new LoginResponse
                 {
@@ -36,7 +37,7 @@ namespace Libraray.Api.Services
             }
 
             // 2. Verify password using BCrypt
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, userAuth.PasswordHash))
             {
                 return new LoginResponse
                 {
@@ -44,17 +45,26 @@ namespace Libraray.Api.Services
                 };
             }
 
-            // 3. Generate JWT token
-            var token = _jwtTokenService.GenerateToken(user);
+            // 3. Create claims DTO for JWT - NO PasswordHash
+            var userClaims = new UserClaimsDto
+            {
+                Id = userAuth.Id,
+                Username = userAuth.Username,
+                Email = userAuth.Email,
+                Role = userAuth.Role
+            };
 
-            // 4. Manual Mapping → Entity → DTO
+            // 4. Generate JWT token with claims only
+            var token = _jwtTokenService.GenerateToken(userClaims);
+
+            // 5. Return response
             return new LoginResponse
             {
                 Message = "Login successful",
-                UserId = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
+                UserId = userAuth.Id,
+                Username = userAuth.Username,
+                Email = userAuth.Email,
+                Role = userAuth.Role,
                 Token = token
             };
         }
