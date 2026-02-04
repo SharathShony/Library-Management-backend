@@ -1,6 +1,63 @@
 [
   {
     "ContainingType": "Libraray.Api.Controllers.AdminController",
+    "Method": "ApproveBorrowingRequest",
+    "RelativePath": "api/Admin/borrowing-requests/{borrowingId}/approve",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "borrowingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.AdminController",
+    "Method": "RejectBorrowingRequest",
+    "RelativePath": "api/Admin/borrowing-requests/{borrowingId}/reject",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "borrowingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "Libraray.Api.DTO.Admin.RejectBorrowingRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.AdminController",
+    "Method": "GetPendingBorrowingRequests",
+    "RelativePath": "api/Admin/borrowing-requests/pending",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[Libraray.Api.DTO.Admin.PendingBorrowingRequestDto, Libraray.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.AdminController",
     "Method": "GetUserOverdueBooks",
     "RelativePath": "api/Admin/overdue-books/{userId}",
     "HttpMethod": "GET",
@@ -396,6 +453,22 @@
     "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
     "Method": "GetOverdueBooksCount",
     "RelativePath": "api/Borrowings/overdue/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Libraray.Api.Controllers.BorrowingsController",
+    "Method": "GetUserPendingRequests",
+    "RelativePath": "api/Borrowings/pending",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

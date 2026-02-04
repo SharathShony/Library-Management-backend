@@ -30,7 +30,18 @@ public partial class Borrowing
 
     [Column("status")]
     [StringLength(50)]
-    public string Status { get; set; } = null!;
+    public string Status { get; set; } = "pending"; // Default to pending
+
+    // Approval tracking fields
+    [Column("approved_by")]
+    public Guid? ApprovedBy { get; set; }
+
+    [Column("approved_at")]
+    public DateTime? ApprovedAt { get; set; }
+
+    [Column("rejection_reason")]
+    [StringLength(500)]
+    public string? RejectionReason { get; set; }
 
     [ForeignKey("BookId")]
     [InverseProperty("Borrowings")]
