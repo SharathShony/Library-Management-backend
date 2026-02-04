@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Libraray.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Libraray.Api.Context;
+using System.Security.Claims;
+using Libraray.Api.DTO.Books;
 
 namespace Libraray.Api.Controllers
 {
@@ -11,10 +14,12 @@ namespace Libraray.Api.Controllers
     public class BorrowingsController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly LibraryDbContext _context;
 
-        public BorrowingsController(IBookService bookService)
+        public BorrowingsController(IBookService bookService, LibraryDbContext context)
         {
             _bookService = bookService;
+            _context = context;
         }
 
         [HttpGet("currently-borrowed/count")]
@@ -141,5 +146,47 @@ namespace Libraray.Api.Controllers
             return Ok(new { exists, message });
         }
 
+        /// <summary>
+        /// Get user's own pending borrowing requests
+        /// </summary>
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetUserPendingRequests([FromQuery] Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Invalid userId" });
+            }
+
+            // Get current user ID from JWT token
+            var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                  ?? User.FindFirst("sub")?.Value;
+            
+            // Ensure users can only see their own pending requests
+            if (currentUserIdClaim != userId.ToString())
+            {
+                return Forbid();
+            }
+
+            var pendingRequests = await _context.Borrowings
+                .Where(b => b.UserId == userId && b.Status == "pending")
+                .Include(b => b.Book)
+                    .ThenInclude(book => book.BookAuthors)
+                .ThenInclude(ba => ba.Author)
+                .OrderByDescending(b => b.BorrowDate)
+                .Select(b => new
+                {
+                    borrowingId = b.Id,
+                    bookId = b.BookId,
+                    bookTitle = b.Book.Title,
+                    author = string.Join(", ", b.Book.BookAuthors.Select(ba => ba.Author.Name)),
+                    isbn = b.Book.Isbn,
+                    requestedDate = b.BorrowDate.ToDateTime(TimeOnly.MinValue),
+                    dueDate = b.DueDate.HasValue ? b.DueDate.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue,
+                    status = b.Status
+                })
+                .ToListAsync();
+
+            return Ok(pendingRequests);
+        }
     }
 }

@@ -6,57 +6,72 @@ using Libraray.Api.Context;
 using Libraray.Api.Entities;
 using Libraray.Api.DTO.Users;
 using Library_backend.Repositories.Interfaces;
+using Libraray.Api.Helpers.StoredProcedures;
+using Libraray.Api.Mappers.UserMappers;
 
 namespace Library_backend.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly LibraryDbContext _context;
+        private readonly IConnectionFactory _connectionFactory;
 
-        public UserRepository(LibraryDbContext context)
+        public UserRepository(LibraryDbContext context, IConnectionFactory connectionFactory)
         {
-      _context = context;
-  }
+            _context = context;
+            _connectionFactory = connectionFactory;
+        }
 
         public async Task<UserAuthDto?> GetByEmailForAuthAsync(string email)
         {
-return await _context.Users
- .Where(u => u.Email.ToLower() == email.ToLower())
-  .Select(u => new UserAuthDto
-            {
-        Id = u.Id,
-  Username = u.Username,
-     Email = u.Email,
-              PasswordHash = u.PasswordHash,  // Only returned for authentication
-     Role = u.Role
-        })
-           .FirstOrDefaultAsync();
+            var parameters = GetByEmailForAuthMapper.Parameters(email);
+     var resultMapper = GetByEmailForAuthMapper.ResultMapper();
+          var results = await RepositoryHelper.ExecuteQueryAsync<string, UserAuthDto>(
+         _connectionFactory, 
+       parameters, 
+ resultMapper);
+      
+     return results.FirstOrDefault();
         }
 
+        /// <summary>
+        /// CONVERTED TO STORED PROCEDURE
+        /// Checks if email exists in database
+      /// </summary>
         public async Task<bool> EmailExistsAsync(string email)
         {
-       return await _context.Users
-         .AnyAsync(u => u.Email.ToLower() == email.ToLower());
-        }
+  var parameters = EmailExistsMapper.Parameters(email);
+   var result = await RepositoryHelper.ExecuteScalarAsync<string, int>(
+     _connectionFactory,
+          parameters);
+
+          return result.HasValue && result.Value > 0;
+   }
 
         public async Task<bool> UsernameExistsAsync(string username)
         {
-      return await _context.Users
-       .AnyAsync(u => u.Username.ToLower() == username.ToLower());
+      //return await _context.Users
+      // .AnyAsync(u => u.Username.ToLower() == username.ToLower());
+var parameters = UsernameExistsAsyncMapper.Parameters(username);
+var result = await RepositoryHelper.ExecuteScalarAsync<string, int>(_connectionFactory, parameters);
+return result.HasValue && result.Value > 0;
         }
 
     public async Task<bool> AddAsync(User user)
+    {
+        try
         {
-    try
-  {
-     await _context.Users.AddAsync(user);
-      await _context.SaveChangesAsync();
-      return true;  // ✅ Success
-          }
-      catch
-   {
-  return false;  // ✅ Failed
-     }
+            var parameters = AddUserMapper.Parameters(user);
+        var rowsAffected = await RepositoryHelper.ExecuteNonQueryAsync(
+            _connectionFactory, 
+        parameters);
+            
+    return rowsAffected > 0;
+        }
+ catch
+        {
+            return false;  
+        }
     }
     }
 }

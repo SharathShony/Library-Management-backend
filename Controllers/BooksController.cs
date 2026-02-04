@@ -85,10 +85,16 @@ namespace Libraray.Api.Controllers
                         return BadRequest(new { message = "No copies available for borrowing" });
                     }
 
-                    return BadRequest(new { message = "Unable to borrow book. User may not exist." });
+                    return BadRequest(new { message = "Unable to borrow book. You may already have a pending or active request for this book, or the user does not exist." });
                 }
 
-                return Ok(result);
+                return Ok(new BorrowBookResponse
+                {
+                    BorrowingId = result.BorrowingId,
+                    AvailableCopies = result.AvailableCopies,
+                    Message = "Borrowing request submitted successfully! Waiting for admin approval.",
+                    Status = "pending"
+                });
             }
             catch (DbUpdateConcurrencyException)
             {
