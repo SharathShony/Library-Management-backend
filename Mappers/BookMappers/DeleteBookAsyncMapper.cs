@@ -1,0 +1,22 @@
+using Libraray.Api.Helpers.StoredProcedures;
+using System.Data;
+
+namespace Libraray.Api.Mappers.BookMappers
+{
+    public static class DeleteBookAsyncMapper
+    {
+        public static StoredProcedureParams<Guid> Parameters(Guid bookId)
+        {
+            var parameters = new StoredProcedureParams<Guid>("dbo.usp_DeleteBook");
+            
+            // Input parameter
+            parameters.AddInputParameter("@book_id", bookId, DbType.Guid);
+        
+            // Output parameters
+            parameters.AddOutputParameter("@error_code", DbType.Int32);
+            parameters.AddOutputParameter("@error_message", DbType.String, 255);
+   
+            return parameters;
+        }
+    }
+}

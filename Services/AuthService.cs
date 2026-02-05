@@ -83,6 +83,14 @@ namespace Libraray.Api.Services
                         Message = "Invalid email format"
                     };
                 }
+                if(request.Password.Length <= 8 || request.Password.Length >= 100)
+                {
+                    return new SignupResponse
+                    {
+                        Message = "Password must be between 8 and 100 characters"
+                    };
+                }
+
 
                 var passwordValidation = ValidatePassword(request.Password);
                 if (!passwordValidation.IsValid)
@@ -133,7 +141,6 @@ namespace Libraray.Api.Services
                     };
                 }
 
-                // ✅ Service creates the response with user data
                 return new SignupResponse
                 {
                     Message = "Account created successfully",

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Libraray.Api.Helpers.StoredProcedures;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,14 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddDbContext<LibraryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ? Register Connection Factory for Stored Procedures
+builder.Services.AddSingleton<IConnectionFactory>(sp =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? throw new InvalidOperationException("Connection string not configured");
+    return new SqlConnectionFactory(connectionString);
+});
 
 // Then register repositories and services that depend on it
 builder.Services.AddScoped<IUserRepository, UserRepository>();
