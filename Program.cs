@@ -1,4 +1,4 @@
-using Libraray.Api.Context;
+﻿using Libraray.Api.Context;
 using Libraray.Api.Repositories;
 using Libraray.Api.Repositories.Interfaces;
 using Libraray.Api.Services;
@@ -45,15 +45,20 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ? Register Connection Factory for Stored Procedures
+// 🔥 UPDATED: Support environment variables for production (Render/Supabase)
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+  ?? throw new InvalidOperationException("Connection string not configured");
+
+// 🔥 CHANGED: UseSqlServer → UseNpgsql for PostgreSQL/Supabase
+builder.Services.AddDbContext<LibraryDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// ? Register Connection Factory for Stored Procedures (PostgreSQL)
 builder.Services.AddSingleton<IConnectionFactory>(sp =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? throw new InvalidOperationException("Connection string not configured");
-    return new SqlConnectionFactory(connectionString);
+    return new NpgsqlConnectionFactory(connectionString);
 });
 
 // Then register repositories and services that depend on it
@@ -69,33 +74,45 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+           .AllowAnyHeader()
+       .AllowAnyMethod();
 });
+});
+
+// 🔥 UPDATED: JWT Configuration with environment variable support
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
+?? builder.Configuration["Jwt:Key"] 
+    ?? throw new InvalidOperationException("JWT Key not configured");
+
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+    ?? builder.Configuration["Jwt:Issuer"] 
+  ?? throw new InvalidOperationException("JWT Issuer not configured");
+
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+    ?? builder.Configuration["Jwt:Audience"] 
+    ?? throw new InvalidOperationException("JWT Audience not configured");
 
 // JWT Authentication Configuration
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"))
-            )
+    {
+   ValidateIssuer = true,
+  ValidateAudience = true,
+ ValidateLifetime = true,
+  ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+  ValidAudience = jwtAudience,
+   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// 🔥 UPDATED: Enable Swagger in production for Render (you can disable later)
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -107,7 +124,6 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 

@@ -7,11 +7,11 @@ namespace Libraray.Api.Mappers.BookMappers
     public static class GetBorrowingHistoryAsyncMapper
     {
         /// <summary>
-        /// Maps userId parameter for usp_GetBorrowingHistory stored procedure
+        /// Maps userId parameter for usp_get_borrowing_history stored procedure
         /// </summary>
         public static StoredProcedureParams<Guid> Parameters(Guid userId) =>
-            new StoredProcedureParams<Guid>("dbo.usp_GetBorrowingHistory")
-                .AddInputParameter("@user_id", userId, DbType.Guid);
+            new StoredProcedureParams<Guid>("usp_get_borrowing_history")
+                .AddInputParameter("p_user_id", userId, DbType.Guid);
 
         /// <summary>
         /// Maps SQL result to BorrowingHistoryDto

@@ -9,7 +9,7 @@ namespace Libraray.Api.Mappers.CategoryMappers
    
         public static StoredProcedureParams<string> Parameters()
         {
-         return new StoredProcedureParams<string>("dbo.usp_GetAllCategories");
+         return new StoredProcedureParams<string>("usp_get_all_categories");
         }
 
         public static Func<IDataReader, CategoryDto> ResultMapper(){

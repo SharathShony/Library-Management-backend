@@ -10,8 +10,8 @@ namespace Libraray.Api.Mappers.BookMappers
         /// Maps userId parameter for usp_GetUserOverdueBooks stored procedure
    /// </summary>
         public static StoredProcedureParams<Guid> Parameters(Guid userId) =>
-          new StoredProcedureParams<Guid>("dbo.usp_GetUserOverdueBooks")
-           .AddInputParameter("@user_id", userId, DbType.Guid);
+        new StoredProcedureParams<Guid>("usp_get_user_overdue_books")
+     .AddInputParameter("p_user_id", userId, DbType.Guid);
 
         /// <summary>
         /// Maps first result set (user info) to UserOverdueBooksDto

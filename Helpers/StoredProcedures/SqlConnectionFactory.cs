@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System.Data;
 
 namespace Libraray.Api.Helpers.StoredProcedures
@@ -9,12 +9,12 @@ namespace Libraray.Api.Helpers.StoredProcedures
 
         public SqlConnectionFactory(string connectionString)
         {
-        _connectionString = connectionString;
+            _connectionString = connectionString;
         }
 
-     public IDbConnection CreateConnection()
+        public IDbConnection CreateConnection()
         {
-             return new SqlConnection(_connectionString);
+            return new NpgsqlConnection(_connectionString);
         }
     }
 }

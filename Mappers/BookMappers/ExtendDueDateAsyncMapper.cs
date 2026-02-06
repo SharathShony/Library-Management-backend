@@ -10,16 +10,16 @@ namespace Libraray.Api.Mappers.BookMappers
         /// </summary>
       public static StoredProcedureParams<object> Parameters(Guid borrowingId, int extensionDays)
         {
-  var parameters = new StoredProcedureParams<object>("dbo.usp_ExtendDueDate");
+  var parameters = new StoredProcedureParams<object>("usp_extend_due_date");
        
   // Input parameters
-            parameters.AddInputParameter("@borrowing_id", borrowingId, DbType.Guid);
-   parameters.AddInputParameter("@extension_days", extensionDays, DbType.Int32);
-       
+     parameters.AddInputParameter("p_borrowing_id", borrowingId, DbType.Guid);
+   parameters.AddInputParameter("p_extension_days", extensionDays, DbType.Int32);
+  
     // Output parameters
-      parameters.AddOutputParameter("@new_due_date", DbType.Date);
-          parameters.AddOutputParameter("@error_code", DbType.Int32);
-            parameters.AddOutputParameter("@error_message", DbType.String, 255);
+      parameters.AddOutputParameter("new_due_date", DbType.Date);
+          parameters.AddOutputParameter("error_code", DbType.Int32);
+parameters.AddOutputParameter("error_message", DbType.String, 255);
             
             return parameters;
       }

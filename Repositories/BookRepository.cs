@@ -334,10 +334,10 @@ namespace Library_backend.Repositories
   //    {
     //      Id = Guid.NewGuid(),
     //        Title = request.Title,
- //         Subtitle = request.Subtitle,
+    //        Subtitle = request.Subtitle,
     //        Isbn = request.Isbn,
     //        Summary = request.Summary,
- //        Publisher = request.Publisher,
+    //        Publisher = request.Publisher,
     // PublicationDate = request.PublicationDate,
     //        TotalCopies = request.TotalCopies,
     //   AvailableCopies = request.TotalCopies,
@@ -431,7 +431,7 @@ namespace Library_backend.Repositories
     try
     {
         var parameters = CreateBookAsyncMapper.Parameters(request);
-        var outputValues = await RepositoryHelper.ExecuteNonQueryWithTableValuedParamsAsync(_connectionFactory, parameters);
+   var outputValues = await RepositoryHelper.ExecuteNonQueryWithJsonParamsAsync(_connectionFactory, parameters);
 
         var errorCode = outputValues.ContainsKey("@error_code") && outputValues["@error_code"] != null
             ? Convert.ToInt32(outputValues["@error_code"]): 0;

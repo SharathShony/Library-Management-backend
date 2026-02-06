@@ -10,8 +10,8 @@ namespace Libraray.Api.Mappers.BookMappers
         /// Maps parameters for usp_GetCurrentlyBorrowedBooks stored procedure
         /// </summary>
         public static StoredProcedureParams<Guid> Parameters(Guid userId) =>
-            new StoredProcedureParams<Guid>("dbo.usp_GetCurrentlyBorrowedBooks")
-                .AddInputParameter("@user_id", userId, DbType.Guid);
+            new StoredProcedureParams<Guid>("usp_get_currently_borrowed_books")
+                .AddInputParameter("p_user_id", userId, DbType.Guid);
 
         /// <summary>
         /// Maps result set to BorrowedBookDto
