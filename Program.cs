@@ -47,63 +47,62 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// 🔥 HELPER: Convert Render/Supabase postgres:// URL to Npgsql connection string format
-static string ConvertDatabaseUrl(string databaseUrl)
+// 🔥 Build connection string safely using separate env vars OR postgres:// URL
+static string BuildConnectionString()
 {
-    if (string.IsNullOrEmpty(databaseUrl))
-        throw new InvalidOperationException("Database URL is null or empty");
-        
-    if (!databaseUrl.StartsWith("postgres://") && !databaseUrl.StartsWith("postgresql://"))
-        return databaseUrl; // Already in correct format
-
-    try
+    // Option 1: Use separate environment variables (RECOMMENDED - handles special chars in password)
+    var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+    var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+    
+    if (!string.IsNullOrEmpty(dbHost) && !string.IsNullOrEmpty(dbPassword))
     {
-        var uri = new Uri(databaseUrl);
-        
-        // 🔥 FIX: Split only on FIRST colon - password may contain colons
-        var userInfo = uri.UserInfo;
-        var colonIndex = userInfo.IndexOf(':');
-        
-        if (colonIndex < 0)
-            throw new InvalidOperationException("Invalid user info format in DATABASE_URL");
-            
-        var username = Uri.UnescapeDataString(userInfo.Substring(0, colonIndex));
-        var password = Uri.UnescapeDataString(userInfo.Substring(colonIndex + 1));
-        var database = uri.LocalPath.TrimStart('/');
-        var host = uri.Host;
-        var port = uri.Port;
-
-        // Use NpgsqlConnectionStringBuilder to safely handle special characters
         var csBuilder = new NpgsqlConnectionStringBuilder
         {
-            Host = host,
-            Port = port,
-            Database = database,
-            Username = username,
-            Password = password,
+            Host = dbHost,
+            Port = int.Parse(Environment.GetEnvironmentVariable("DB_PORT") ?? "5432"),
+            Database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "postgres",
+            Username = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres",
+            Password = dbPassword,
             SslMode = SslMode.Require,
             TrustServerCertificate = true
         };
         
-        Console.WriteLine($"✅ Successfully converted DATABASE_URL to Npgsql format");
-        Console.WriteLine($"   Host: {host}, Port: {port}, Database: {database}, Username: {username}");
-        Console.WriteLine($"   Connection string length: {csBuilder.ConnectionString.Length}");
+        Console.WriteLine($"✅ Built connection string from separate env vars");
+        Console.WriteLine($"   Host: {csBuilder.Host}, Port: {csBuilder.Port}, Database: {csBuilder.Database}");
         
         return csBuilder.ConnectionString;
     }
-    catch (Exception ex)
+    
+    // Option 2: Use postgres:// URL format
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrEmpty(databaseUrl) && (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
     {
-        Console.WriteLine($"❌ Error converting DATABASE_URL: {ex.Message}");
-        throw;
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo;
+        var colonIndex = userInfo.IndexOf(':');
+        
+        var csBuilder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port,
+            Database = uri.LocalPath.TrimStart('/'),
+            Username = Uri.UnescapeDataString(userInfo.Substring(0, colonIndex)),
+            Password = Uri.UnescapeDataString(userInfo.Substring(colonIndex + 1)),
+            SslMode = SslMode.Require,
+            TrustServerCertificate = true
+        };
+        
+        Console.WriteLine($"✅ Built connection string from DATABASE_URL");
+        return csBuilder.ConnectionString;
     }
+    
+    // Option 3: Fallback to raw DATABASE_URL or appsettings
+    return databaseUrl 
+        ?? throw new InvalidOperationException("Database not configured. Set DB_HOST + DB_PASSWORD or DATABASE_URL");
 }
 
-// 🔥 UPDATED: Support environment variables for production (Render/Supabase)
-var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
-    ?? builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string not configured");
-
-var connectionString = ConvertDatabaseUrl(rawConnectionString);
+// 🔥 UPDATED: Build connection string safely
+var connectionString = BuildConnectionString();
 
 // 🔥 CHANGED: UseSqlServer → UseNpgsql for PostgreSQL/Supabase
 builder.Services.AddDbContext<LibraryDbContext>(options =>
