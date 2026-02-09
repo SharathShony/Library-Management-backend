@@ -59,18 +59,21 @@ static string ConvertDatabaseUrl(string databaseUrl)
     try
     {
         var uri = new Uri(databaseUrl);
-        var userInfo = uri.UserInfo.Split(':');
         
-        if (userInfo.Length != 2)
+        // 🔥 FIX: Split only on FIRST colon - password may contain colons
+        var userInfo = uri.UserInfo;
+        var colonIndex = userInfo.IndexOf(':');
+        
+        if (colonIndex < 0)
             throw new InvalidOperationException("Invalid user info format in DATABASE_URL");
             
-        var username = Uri.UnescapeDataString(userInfo[0]);
-        var password = Uri.UnescapeDataString(userInfo[1]);
+        var username = Uri.UnescapeDataString(userInfo.Substring(0, colonIndex));
+        var password = Uri.UnescapeDataString(userInfo.Substring(colonIndex + 1));
         var database = uri.LocalPath.TrimStart('/');
         var host = uri.Host;
         var port = uri.Port;
 
-        // 🔥 FIX: Use NpgsqlConnectionStringBuilder to safely handle special characters
+        // Use NpgsqlConnectionStringBuilder to safely handle special characters
         var csBuilder = new NpgsqlConnectionStringBuilder
         {
             Host = host,
@@ -84,6 +87,7 @@ static string ConvertDatabaseUrl(string databaseUrl)
         
         Console.WriteLine($"✅ Successfully converted DATABASE_URL to Npgsql format");
         Console.WriteLine($"   Host: {host}, Port: {port}, Database: {database}, Username: {username}");
+        Console.WriteLine($"   Connection string length: {csBuilder.ConnectionString.Length}");
         
         return csBuilder.ConnectionString;
     }
