@@ -46,10 +46,23 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// 🔥 HELPER: Convert Render/Supabase postgres:// URL to Npgsql connection string format
+static string ConvertDatabaseUrl(string databaseUrl)
+{
+    if (string.IsNullOrEmpty(databaseUrl) || !databaseUrl.StartsWith("postgres://"))
+        return databaseUrl; // Already in correct format or null
+
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    return $"Host={uri.Host};Port={uri.Port};Database={uri.LocalPath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
 // 🔥 UPDATED: Support environment variables for production (Render/Supabase)
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
-  ?? throw new InvalidOperationException("Connection string not configured");
+    ?? throw new InvalidOperationException("Connection string not configured");
+
+var connectionString = ConvertDatabaseUrl(rawConnectionString);
 
 // 🔥 CHANGED: UseSqlServer → UseNpgsql for PostgreSQL/Supabase
 builder.Services.AddDbContext<LibraryDbContext>(options =>
