@@ -49,16 +49,39 @@ builder.Services.AddSwaggerGen(options =>
 // 🔥 HELPER: Convert Render/Supabase postgres:// URL to Npgsql connection string format
 static string ConvertDatabaseUrl(string databaseUrl)
 {
-    if (string.IsNullOrEmpty(databaseUrl) || !databaseUrl.StartsWith("postgres://"))
-        return databaseUrl; // Already in correct format or null
+    if (string.IsNullOrEmpty(databaseUrl))
+        throw new InvalidOperationException("Database URL is null or empty");
+        
+    if (!databaseUrl.StartsWith("postgres://") && !databaseUrl.StartsWith("postgresql://"))
+        return databaseUrl; // Already in correct format
 
-    var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    var username = Uri.UnescapeDataString(userInfo[0]);
-    var password = Uri.UnescapeDataString(userInfo[1]);
-    var database = uri.LocalPath.TrimStart('/');
-    
-    return $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    try
+    {
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        
+        if (userInfo.Length != 2)
+            throw new InvalidOperationException($"Invalid user info format in DATABASE_URL");
+            
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var password = Uri.UnescapeDataString(userInfo[1]);
+        var database = uri.LocalPath.TrimStart('/');
+        var host = uri.Host;
+        var port = uri.Port;
+
+        var result = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+        
+        Console.WriteLine($"✅ Successfully converted DATABASE_URL to Npgsql format");
+        Console.WriteLine($"   Host: {host}, Port: {port}, Database: {database}, Username: {username}");
+        
+        return result;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error converting DATABASE_URL: {ex.Message}");
+        Console.WriteLine($"   DATABASE_URL format: {databaseUrl.Substring(0, Math.Min(30, databaseUrl.Length))}...");
+        throw;
+    }
 }
 
 // 🔥 UPDATED: Support environment variables for production (Render/Supabase)
