@@ -9,7 +9,7 @@ namespace Libraray.Api.Mappers.BookMappers
         /// Maps parameters for usp_GetOverdueBooksCount stored procedure
     /// </summary>
    public static StoredProcedureParams<Guid> Parameters(Guid userId) =>
-            new StoredProcedureParams<Guid>("dbo.usp_GetOverdueBooksCount")
-           .AddInputParameter("@user_id", userId, DbType.Guid);
+            new StoredProcedureParams<Guid>("usp_get_overdue_books_count")
+        .AddInputParameter("p_user_id", userId, DbType.Guid);
   }
 }

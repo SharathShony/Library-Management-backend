@@ -7,7 +7,7 @@ namespace Libraray.Api.Mappers.BookMappers
     public static class GetBookCatalogAsyncMapper
     {
         public static StoredProcedureParams<string> Parameters() =>
-            new StoredProcedureParams<string>("sp_GetBookCatalog");
+            new StoredProcedureParams<string>("sp_get_book_catalog");
 
         public static Func<IDataReader, BookCatalogDto> ResultMapper() => reader => new BookCatalogDto
         {

@@ -7,7 +7,7 @@ namespace Libraray.Api.Mappers.BookMappers
     public static class GetOverdueUsersAsyncMapper
     {
         public static StoredProcedureParams<string> Parameters() =>
-            new StoredProcedureParams<string>("dbo.usp_GetOverdueUsers");
+            new StoredProcedureParams<string>("usp_get_overdue_users");
 
         public static Func<IDataReader, OverdueUserDto> ResultMapper() => reader => new OverdueUserDto
         {

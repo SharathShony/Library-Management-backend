@@ -8,7 +8,7 @@ namespace Libraray.Api.Mappers.UserMappers
         /// Maps input parameter to stored procedure parameters
         /// </summary>
         public static StoredProcedureParams<string> Parameters(string email) =>
-            new StoredProcedureParams<string>("sp_EmailExists")
-    .AddInputParameter("@email", email);
+            new StoredProcedureParams<string>("sp_email_exists")
+    .AddInputParameter("p_email", email);
     }
 }

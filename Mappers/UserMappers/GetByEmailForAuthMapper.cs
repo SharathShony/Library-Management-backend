@@ -10,8 +10,8 @@ namespace Libraray.Api.Mappers.UserMappers
         /// Maps input email parameter to stored procedure parameters
         /// </summary>
         public static StoredProcedureParams<string> Parameters(string email) =>
-            new StoredProcedureParams<string>("sp_GetByEmailForAuth")
-        .AddInputParameter("@email", email);
+            new StoredProcedureParams<string>("sp_get_by_email_for_auth")
+                .AddInputParameter("p_email", email);
 
         /// <summary>
         /// Maps database reader to UserAuthDto

@@ -36,25 +36,27 @@ public partial class LibraryDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__AUTHORS__3213E83F8491C818");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            // 🔥 CHANGED: newid() → gen_random_uuid() for PostgreSQL
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
         });
 
         modelBuilder.Entity<Book>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__BOOKS__3213E83FD1A000CE");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            // 🔥 CHANGED: SQL Server functions → PostgreSQL functions
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.AvailableCopies).HasDefaultValue(1);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP"); // sysdatetime() → CURRENT_TIMESTAMP
             entity.Property(e => e.TotalCopies).HasDefaultValue(1);
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         modelBuilder.Entity<BookAuthor>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__BOOK_AUT__3213E83FD7727256");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
 
             entity.HasOne(d => d.Author).WithMany(p => p.BookAuthors)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -69,7 +71,7 @@ public partial class LibraryDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__BOOK_CAT__3213E83F7444D29E");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
 
             entity.HasOne(d => d.Book).WithMany(p => p.BookCategories)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -84,8 +86,9 @@ public partial class LibraryDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__BORROWIN__3213E83F982CA074");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.BorrowDate).HasDefaultValueSql("(getdate())");
+            // 🔥 CHANGED: getdate() → CURRENT_TIMESTAMP for PostgreSQL
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.BorrowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(d => d.Book).WithMany(p => p.Borrowings)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -100,16 +103,16 @@ public partial class LibraryDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__CATEGORI__3213E83F84B47EEF");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__USERS__3213E83F226027D8");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         OnModelCreatingPartial(modelBuilder);

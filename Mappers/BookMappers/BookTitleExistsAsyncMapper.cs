@@ -9,7 +9,7 @@ namespace Libraray.Api.Mappers.BookMappers
    /// Maps title parameter for usp_BookTitleExists stored procedure
     /// </summary>
         public static StoredProcedureParams<string> Parameters(string title) =>
-  new StoredProcedureParams<string>("dbo.usp_BookTitleExists")
-           .AddInputParameter("@title", title, DbType.String);
+  new StoredProcedureParams<string>("usp_book_title_exists")
+           .AddInputParameter("p_title", title, DbType.String);
     }
 }

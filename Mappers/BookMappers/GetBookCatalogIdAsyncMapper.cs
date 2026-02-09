@@ -10,8 +10,8 @@ namespace Libraray.Api.Mappers.BookMappers
         /// Maps book ID to stored procedure parameters
         /// </summary>
         public static StoredProcedureParams<Guid> Parameters(Guid bookId) =>
-            new StoredProcedureParams<Guid>("sp_GetBookDetailsById")
-            .AddInputParameter("@bookId", bookId);
+            new StoredProcedureParams<Guid>("sp_get_book_details_by_id")
+            .AddInputParameter("p_book_id", bookId);
 
         /// <summary>
         /// Maps database reader to BookDetailsDto
