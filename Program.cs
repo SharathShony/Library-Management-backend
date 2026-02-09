@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Libraray.Api.Helpers.StoredProcedures;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,7 +62,7 @@ static string ConvertDatabaseUrl(string databaseUrl)
         var userInfo = uri.UserInfo.Split(':');
         
         if (userInfo.Length != 2)
-            throw new InvalidOperationException($"Invalid user info format in DATABASE_URL");
+            throw new InvalidOperationException("Invalid user info format in DATABASE_URL");
             
         var username = Uri.UnescapeDataString(userInfo[0]);
         var password = Uri.UnescapeDataString(userInfo[1]);
@@ -69,17 +70,26 @@ static string ConvertDatabaseUrl(string databaseUrl)
         var host = uri.Host;
         var port = uri.Port;
 
-        var result = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+        // 🔥 FIX: Use NpgsqlConnectionStringBuilder to safely handle special characters
+        var csBuilder = new NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = port,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = SslMode.Require,
+            TrustServerCertificate = true
+        };
         
         Console.WriteLine($"✅ Successfully converted DATABASE_URL to Npgsql format");
         Console.WriteLine($"   Host: {host}, Port: {port}, Database: {database}, Username: {username}");
         
-        return result;
+        return csBuilder.ConnectionString;
     }
     catch (Exception ex)
     {
         Console.WriteLine($"❌ Error converting DATABASE_URL: {ex.Message}");
-        Console.WriteLine($"   DATABASE_URL format: {databaseUrl.Substring(0, Math.Min(30, databaseUrl.Length))}...");
         throw;
     }
 }
