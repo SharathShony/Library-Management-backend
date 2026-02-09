@@ -54,7 +54,11 @@ static string ConvertDatabaseUrl(string databaseUrl)
 
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
-    return $"Host={uri.Host};Port={uri.Port};Database={uri.LocalPath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = Uri.UnescapeDataString(userInfo[1]);
+    var database = uri.LocalPath.TrimStart('/');
+    
+    return $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
 
 // 🔥 UPDATED: Support environment variables for production (Render/Supabase)
