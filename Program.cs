@@ -109,6 +109,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 // 🔥 UPDATED: Enable Swagger in production for Render (you can disable later)
@@ -117,7 +118,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AllowAll");
+
 
 // Comment out or remove HTTPS redirection for local development
 // app.UseHttpsRedirection();
