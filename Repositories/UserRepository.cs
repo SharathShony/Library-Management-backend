@@ -50,11 +50,11 @@ namespace Library_backend.Repositories
 
         public async Task<bool> UsernameExistsAsync(string username)
         {
-      //return await _context.Users
-      // .AnyAsync(u => u.Username.ToLower() == username.ToLower());
-var parameters = UsernameExistsAsyncMapper.Parameters(username);
-var result = await RepositoryHelper.ExecuteScalarAsync<string, int>(_connectionFactory, parameters);
-return result.HasValue && result.Value > 0;
+            //return await _context.Users
+            // .AnyAsync(u => u.Username.ToLower() == username.ToLower());
+        var parameters = UsernameExistsAsyncMapper.Parameters(username);
+        var result = await RepositoryHelper.ExecuteScalarAsync<string, int>(_connectionFactory, parameters);
+        return result.HasValue && result.Value > 0;
         }
 
     public async Task<bool> AddAsync(User user)
@@ -62,13 +62,12 @@ return result.HasValue && result.Value > 0;
         try
         {
             var parameters = AddUserMapper.Parameters(user);
-        var rowsAffected = await RepositoryHelper.ExecuteNonQueryAsync(
-            _connectionFactory, 
-        parameters);
+            var result = await RepositoryHelper.ExecuteScalarAsync<User, int>(
+                _connectionFactory, parameters);
             
-    return rowsAffected > 0;
+            return result == 1;
         }
- catch
+        catch
         {
             return false;  
         }

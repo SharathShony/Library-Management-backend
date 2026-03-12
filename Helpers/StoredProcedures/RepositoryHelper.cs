@@ -58,31 +58,26 @@ var paramList = string.Join(", ", parameterNames.Select(
             return param;
         }
 
-   public static async Task<List<TResult>> ExecuteQueryAsync<TInput, TResult>(
-   IConnectionFactory connectionFactory,
-      StoredProcedureParams<TInput> parameters,
-       Func<IDataReader, TResult> resultMapper)
-  {
-     using var connection = connectionFactory.CreateConnection() as NpgsqlConnection;
-          if (connection == null)
-       throw new InvalidOperationException("Connection must be an NpgsqlConnection");
-  await connection.OpenAsync();
+   public static async Task<List<TResult>> ExecuteQueryAsync<TInput, TResult>(IConnectionFactory connectionFactory,StoredProcedureParams<TInput> parameters,Func<IDataReader, TResult> resultMapper)
+   {
+        using var connection = connectionFactory.CreateConnection() as NpgsqlConnection;
+         if (connection == null)
+        throw new InvalidOperationException("Connection must be an NpgsqlConnection");
+        await connection.OpenAsync();
 
-      var sql = BuildFunctionCallSql(
+        var sql = BuildFunctionCallSql(
         parameters.StoredProcedureName,
-          parameters.Parameters.Select(p => p.Name));
+        parameters.Parameters.Select(p => p.Name));
 
-using var command = new NpgsqlCommand(sql, connection)
-  {
-    CommandType = CommandType.Text
-};
+        using var command = new NpgsqlCommand(sql, connection)
+        {
+            CommandType = CommandType.Text
+        };
 
-       foreach (var (name, value, dbType, direction, size, typeName) in parameters.Parameters)
-            {
-                if (value is DataTable)
-    throw new NotSupportedException(
-            "PostgreSQL does not support table-valued parameters. Use JSON or arrays instead.");
-
+     foreach (var (name, value, dbType, direction, size, typeName) in parameters.Parameters)
+     {
+      if (value is DataTable)
+            throw new NotSupportedException("PostgreSQL does not support table-valued parameters. Use JSON or arrays instead.");
   command.Parameters.Add(CreateParameter(name, value, dbType, direction, size));
          }
 

@@ -48,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // 🔥 Build connection string safely using separate env vars OR postgres:// URL
-static string BuildConnectionString()
+string BuildConnectionString()
 {
     // Option 1: Use separate environment variables (RECOMMENDED - handles special chars in password)
     var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
@@ -96,9 +96,10 @@ static string BuildConnectionString()
         return csBuilder.ConnectionString;
     }
     
-    // Option 3: Fallback to raw DATABASE_URL or appsettings
+    // Option 3: Fallback to raw DATABASE_URL, appsettings, or throw
     return databaseUrl 
-        ?? throw new InvalidOperationException("Database not configured. Set DB_HOST + DB_PASSWORD or DATABASE_URL");
+        ?? builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Database not configured. Set DB_HOST + DB_PASSWORD, DATABASE_URL, or configure in appsettings.json");
 }
 
 // 🔥 UPDATED: Build connection string safely
@@ -121,6 +122,8 @@ builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddCors(options =>
 {

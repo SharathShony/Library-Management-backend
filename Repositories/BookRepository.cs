@@ -578,7 +578,7 @@ public async Task<UpdateBookCopiesResponse?> UpdateBookCopiesAsync(Guid bookId, 
     //    await _context.SaveChangesAsync();
     //    await transaction.CommitAsync();
     //
- //    return true;
+ //     return true;
     //}
     //catch
     //{
@@ -638,18 +638,53 @@ public async Task<IEnumerable<OverdueUserDto>> GetOverdueUsersAsync()
 
         public async Task<UserOverdueBooksDto?> GetUserOverdueBooksAsync(Guid userId)
         {
-            var parameters = GetUserOverdueBooksAsyncMapper.Parameters(userId);
-          var userMapper = GetUserOverdueBooksAsyncMapper.UserResultMapper();
-       var overdueBookMapper = GetUserOverdueBooksAsyncMapper.OverdueBookResultMapper();
+            try
+  {
+         // Call first function to get user info
+          var userParams = new StoredProcedureParams<Guid>("usp_get_user_info")
+     .AddInputParameter("p_user_id", userId, System.Data.DbType.Guid);
+       
+                var userResults = await RepositoryHelper.ExecuteQueryAsync<Guid, UserOverdueBooksDto>(
+       _connectionFactory,
+            userParams,
+   reader => new UserOverdueBooksDto
+          {
+              UserId = reader.GetGuid(reader.GetOrdinal("id")),
+       UserName = reader.GetString(reader.GetOrdinal("username")),
+     Email = reader.GetString(reader.GetOrdinal("email")),
+ OverdueBooks = new List<OverdueBookDetailDto>()
+       });
+     
+      var userDto = userResults.FirstOrDefault();
+       if (userDto == null)
+      {
+  return null; // User not found
+            }
 
-   var result = await RepositoryHelper.ExecuteMultipleResultSetsAsync<Guid, UserOverdueBooksDto, OverdueBookDetailDto>(
-         _connectionFactory,
-        parameters,
-     userMapper,
-        overdueBookMapper,
-     (main, details) => main.OverdueBooks = details);
+         // Call second function to get overdue books
+        var booksParams = new StoredProcedureParams<Guid>("usp_get_user_overdue_books_list")
+              .AddInputParameter("p_user_id", userId, System.Data.DbType.Guid);
+     
+  var overdueBooks = await RepositoryHelper.ExecuteQueryAsync<Guid, OverdueBookDetailDto>(
+      _connectionFactory,
+ booksParams,
+      reader => new OverdueBookDetailDto
+   {
+         BorrowingId = reader.GetGuid(reader.GetOrdinal("borrowing_id")),
+       BookId = reader.GetGuid(reader.GetOrdinal("book_id")),
+              BookTitle = reader.GetString(reader.GetOrdinal("book_title")),
+           BorrowedDate = reader.GetDateTime(reader.GetOrdinal("borrowed_date")),
+   DueDate = reader.GetDateTime(reader.GetOrdinal("due_date")),
+      DaysOverdue = reader.GetInt32(reader.GetOrdinal("days_overdue"))
+        });
 
-        return result;
-    }
+                userDto.OverdueBooks = overdueBooks.ToList();
+     return userDto;
+       }
+    catch
+          {
+    return null;
+            }
+        }
     }   
 }
